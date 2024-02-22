@@ -1,0 +1,7 @@
+# Dependency directory
+node_modules
+
+pnpm-lock.yaml
+
+# Ignore built ts files
+dist/**/*
