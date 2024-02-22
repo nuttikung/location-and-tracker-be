@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response } from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
+import { authRoute } from '@/routes'
 
 const app: Express = express()
 // TODO: load from env
@@ -8,6 +9,8 @@ const port = 3000
 
 app.use(cors())
 app.use(bodyParser.json())
+
+app.use('/auth', authRoute)
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Express + TypeScript Server')
