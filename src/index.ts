@@ -1,10 +1,12 @@
-import express, { Express, Request, Response } from 'express'
+import express, { type Express, type Request, type Response } from 'express'
 import bodyParser from 'body-parser'
+import cors from 'cors'
 
 const app: Express = express()
 // TODO: load from env
 const port = 3000
 
+app.use(cors())
 app.use(bodyParser.json())
 
 app.get('/', (req: Request, res: Response) => {
