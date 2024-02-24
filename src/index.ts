@@ -1,24 +1,27 @@
-import express, { type Express, type Request, type Response } from 'express'
+import 'dotenv/config'
+import express, { type Express } from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import { authRoute } from '@/routes'
+import { errorHandler, notFound } from '@/middlewares'
+import methodOverride from 'method-override'
 
 const app: Express = express()
-// TODO: load from env
-const port = 3000
+const port = process.env.PORT ?? 3000
 
 app.use(cors())
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  }),
+)
 app.use(bodyParser.json())
+app.use(methodOverride())
 
 app.use('/auth', authRoute)
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server')
-})
-
-app.get('/hello-world', (req: Request, res: Response) => {
-  res.json({ message: 'it works' })
-})
+app.use(notFound)
+app.use(errorHandler)
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`)
