@@ -2,7 +2,7 @@ import 'dotenv/config'
 import express, { type Express } from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import { authRoute } from '@/routes'
+import { userRoute } from '@/routes'
 import { errorHandler, notFound } from '@/middlewares'
 import methodOverride from 'method-override'
 
@@ -18,7 +18,7 @@ app.use(
 app.use(bodyParser.json())
 app.use(methodOverride())
 
-app.use('/auth', authRoute)
+app.use('/user', userRoute)
 
 app.use(notFound)
 app.use(errorHandler)
