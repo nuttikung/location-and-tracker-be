@@ -1,10 +1,9 @@
 import { User } from '@/types'
 import { type RequestHandler, Response, NextFunction } from 'express'
 import bcrypt from 'bcrypt'
-import { createDBconnection } from '@/helpers'
+import { createDBconnection, createAccessToken } from '@/helpers'
 import { MongoError } from 'mongodb'
-
-const database: string = process.env.DB_NAME ?? 'example'
+import { config } from '@/configs'
 
 export const register: RequestHandler<unknown, unknown, User, unknown> = async (
   req,
@@ -24,15 +23,20 @@ export const register: RequestHandler<unknown, unknown, User, unknown> = async (
     // COMMENT: DB management
     const { getConnection } = createDBconnection()
     const client = await getConnection()
-    const db = client.db(database)
-    await db.collection('user').insertOne({
+    const db = client.db(config.database.name)
+    const result = await db.collection('user').insertOne({
       username,
       password: hasPassword,
       firstName,
       lastName,
       createAt: new Date(),
     })
-    return res.status(201).json({ token: 'something...' })
+    if (result.acknowledged) {
+      const token = createAccessToken({ username, firstName, lastName })
+      return res.status(201).json({ token })
+    }
+    res.statusCode = 422
+    throw new Error('failed to register')
   } catch (error) {
     if (error instanceof MongoError && error.code === 11000) {
       res.statusCode = 422

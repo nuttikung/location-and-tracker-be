@@ -1,7 +1,5 @@
 import { MongoClient } from 'mongodb'
-
-const DB_URI = process.env.DB_CONNECT_URI ?? ''
-const DB_NAME: string = process.env.DB_NAME ?? 'example'
+import { config } from '@/configs'
 
 type CreateDBConnection = {
   getConnection: () => Promise<MongoClient>
@@ -11,14 +9,14 @@ export const createDBconnection = (): CreateDBConnection => {
   let connection: MongoClient
   const firstStart: boolean = true
 
-  if (DB_URI === '') {
+  if (config.database.uri === '') {
     throw new Error('mongo db uri does not valid.')
   }
 
-  const initializeSchema = async (): Promise<void> => {
+  const createIndexes = async (): Promise<void> => {
     try {
       await connection
-        .db(DB_NAME)
+        .db(config.database.name)
         .collection('user')
         .createIndex({ username: 1 }, { unique: true })
     } catch (error) {
@@ -28,9 +26,9 @@ export const createDBconnection = (): CreateDBConnection => {
 
   const getConnection = async (): Promise<MongoClient> => {
     if (!(connection instanceof MongoClient)) {
-      connection = await new MongoClient(DB_URI).connect()
+      connection = await new MongoClient(config.database.uri).connect()
       if (firstStart) {
-        await initializeSchema()
+        await createIndexes()
       }
     }
     return connection
