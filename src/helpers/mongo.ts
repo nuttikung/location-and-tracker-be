@@ -20,7 +20,8 @@ export const createDBconnection = (): CreateDBConnection => {
         .collection('user')
         .createIndex({ username: 1 }, { unique: true })
     } catch (error) {
-      // Do we need to do something ?
+      // Do we need to do something like process.exit(1)?
+      process.exit(1)
     }
   }
 

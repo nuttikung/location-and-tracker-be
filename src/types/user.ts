@@ -10,3 +10,7 @@ export const User = z.object({
 })
 
 export type User = z.infer<typeof User>
+
+export const LoginUser = User.pick({ username: true, password: true })
+
+export type LoginUser = z.infer<typeof LoginUser>

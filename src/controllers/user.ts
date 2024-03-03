@@ -1,9 +1,48 @@
-import { User } from '@/types'
+import { User, LoginUser } from '@/types'
 import { type RequestHandler, Response, NextFunction } from 'express'
 import bcrypt from 'bcrypt'
 import { createDBconnection, createAccessToken } from '@/helpers'
 import { MongoError } from 'mongodb'
 import { config } from '@/configs'
+
+export const login: RequestHandler<
+  unknown,
+  unknown,
+  LoginUser,
+  unknown
+> = async (req, res: Response, next: NextFunction) => {
+  // TODO: move to validation middleware.
+  const { success } = LoginUser.safeParse(req.body)
+  if (!success) {
+    res.statusCode = 422
+    return next(new Error('entity does not match'))
+  }
+  try {
+    const { getConnection } = createDBconnection()
+    const client = await getConnection()
+    const db = client.db(config.database.name)
+    const result = await db
+      .collection('user')
+      .findOne<User>({ username: req.body.username })
+    if (!result) {
+      res.statusCode = 422
+      return next(new Error('user or password does not match'))
+    }
+    const isPasswordMatch = await bcrypt.compare(
+      req.body.password,
+      result.password,
+    )
+    if (!isPasswordMatch) {
+      res.statusCode = 422
+      return next(new Error('user or password does not match'))
+    }
+    const { username, firstName, lastName } = result
+    const token = createAccessToken({ username, firstName, lastName })
+    return res.status(201).json({ token })
+  } catch (error) {
+    return next(error)
+  }
+}
 
 export const register: RequestHandler<unknown, unknown, User, unknown> = async (
   req,
