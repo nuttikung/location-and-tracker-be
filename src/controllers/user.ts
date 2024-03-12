@@ -36,8 +36,8 @@ export const login: RequestHandler<
       res.statusCode = 422
       return next(new Error('user or password does not match'))
     }
-    const { username, firstName, lastName } = result
-    const token = createAccessToken({ username, firstName, lastName })
+    const { username, email } = result
+    const token = createAccessToken({ username, email })
     return res.status(201).json({ token })
   } catch (error) {
     return next(error)
@@ -56,7 +56,7 @@ export const register: RequestHandler<unknown, unknown, User, unknown> = async (
     return next(new Error('entity does not match'))
   }
   try {
-    const { username, password, firstName, lastName } = req.body
+    const { username, email, password } = req.body
     const salt = await bcrypt.genSalt(10)
     const hasPassword = await bcrypt.hash(password, salt)
     // COMMENT: DB management
@@ -65,13 +65,12 @@ export const register: RequestHandler<unknown, unknown, User, unknown> = async (
     const db = client.db(config.database.name)
     const result = await db.collection('user').insertOne({
       username,
+      email,
       password: hasPassword,
-      firstName,
-      lastName,
       createAt: new Date(),
     })
     if (result.acknowledged) {
-      const token = createAccessToken({ username, firstName, lastName })
+      const token = createAccessToken({ username, email })
       return res.status(201).json({ token })
     }
     res.statusCode = 422
